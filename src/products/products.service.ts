@@ -18,6 +18,11 @@ export class ProductsService {
 
   async create(createProductDto: CreateProductDto) { //tratar de usar patron repository
     try {
+
+
+      // if (!createProductDto.slug) { esto es para que el el slug se mande con - o  se rellene
+       //   createProductDto.slug = createProductDto.title.toLowerCase().replaceAll(' ', '-').replaceAll("", '_')
+      // }
       
       const product = this.productRepository.create(createProductDto);
       await this.productRepository.save(product);
@@ -28,20 +33,26 @@ export class ProductsService {
     }
   }
 
+  //paginar
   findAll() {
-    return `This action returns all products`;
+    return this.productRepository.find({})
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    const product = await this.productRepository.findOneBy({ id });
+    if (!product) throw new BadRequestException(`Product with id ${id} not found`);
+    
+    return product;
   }
 
   update(id: number, updateProductDto: UpdateProductDto) {
     return `This action updates a #${id} product`;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} product`;
+   async remove(id: string) {
+    const product = await this.findOne(id);
+    
+    await this.productRepository.remove(product);
   }
 
 

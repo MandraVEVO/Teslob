@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { validate as isUUID } from 'uuid';
@@ -64,8 +64,22 @@ export class ProductsService {
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+   const product = await this.productRepository.preload({ //le dice a typeorm que busque el id y lo reemplace por el nuevo
+    id: id,
+    ...updateProductDto
+   }); //esto no actualiza solo lo prepara para actualizar
+  
+   if (!product) throw new NotFoundException(`Product with id ${id} not found`);
+ 
+    try {
+      await this.productRepository.save(product);
+      return product;
+    } catch (error) {
+      this.handleExceptions(error);
+    }
+   
+  
   }
 
    async remove(id: string) {

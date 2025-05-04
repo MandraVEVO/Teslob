@@ -46,12 +46,17 @@ export class ProductsService {
   }
 
   async findOne(term: string) {
-    let product: Product;
+    let product: Product | null = null;
 
     if(isUUID(term)) {
       product = await this.productRepository.findOneBy({ id: term });
     } else {
-      product = await this.productRepository.findOneBy({ slug: term });
+      // product = await this.productRepository.findOneBy({ slug: term });
+      const queryBuilder = this.productRepository.createQueryBuilder(); //para evitar inyeccion de sql
+      product = await queryBuilder.where('UPPER(title) = :title or slug = :slug',{ //funcion para que busque por slug o nombre sin importar las mayusculas o caracteres especiales
+        title: term.toUpperCase(),
+        slug: term.toLowerCase(),
+      }).getOne();
     }
 
     if (!product) throw new BadRequestException(`Product with id ${term} not found`);

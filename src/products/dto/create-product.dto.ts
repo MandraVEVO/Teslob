@@ -1,4 +1,4 @@
-import { IsArray, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
+import { IsArray, IsEAN, IsIn, IsInt, IsNumber, IsOptional, IsPositive, IsString, MinLength } from "class-validator";
 
 
 export class CreateProductDto {
@@ -26,4 +26,10 @@ export class CreateProductDto {
     sizes: string[];
     @IsIn(['men','woman','unisex']) //validar que el valor sea uno de los tres
     gender: string;
+
+    @IsString({each: true})//validar que cada elemento del array sea un string
+    @IsOptional()
+    @IsArray()
+    tags: string[]; //no es necesario validar porque no es obligatorio
 }
+

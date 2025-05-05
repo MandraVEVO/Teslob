@@ -45,13 +45,21 @@ export class ProductsService {
   }
 
   //paginar
-  findAll(paginationDto: PaginationDto) {
+  async findAll(paginationDto: PaginationDto) {
     const { limit = 10, offset = 0 } = paginationDto;
-    return this.productRepository.find({
+    const products = await this.productRepository.find({
       take: limit,
       skip: offset,
+      relations:{
+        images: true,
+      }
       //to_do: relaciones
     })
+
+    return products.map(product => ({
+      ...product,
+      images: (product.images ?? []).map(img => img.url), //esto es para que solo se guarde la url de la imagen
+    }))
   }
 
   async findOne(term: string) {
@@ -61,16 +69,26 @@ export class ProductsService {
       product = await this.productRepository.findOneBy({ id: term });
     } else {
       // product = await this.productRepository.findOneBy({ slug: term });
-      const queryBuilder = this.productRepository.createQueryBuilder(); //para evitar inyeccion de sql
+      const queryBuilder = this.productRepository.createQueryBuilder('prod'); //para evitar inyeccion de sql
       product = await queryBuilder.where('UPPER(title) = :title or slug = :slug',{ //funcion para que busque por slug o nombre sin importar las mayusculas o caracteres especiales
         title: term.toUpperCase(),
         slug: term.toLowerCase(),
-      }).getOne();
+      })
+      .leftJoinAndSelect('prod.images', 'prodImages') //esto es para que se carguen las imagenes al momento de cargar el producto
+      .getOne();
     }
 
     if (!product) throw new BadRequestException(`Product with id ${term} not found`);
     
     return product;
+  }
+
+  async findOnePlain(term: string) {
+    const {images = [], ...rest} = await this.findOne(term);
+    return {
+      ...rest,
+      images: images.map(img => img.url), //esto es para que solo se guarde la url de la imagen
+    }
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {

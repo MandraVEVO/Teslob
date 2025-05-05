@@ -7,6 +7,7 @@ import { Not, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { validate as isUUID } from 'uuid';
+import { ProductImage } from './entities';
 @Injectable()
 export class ProductsService {
 
@@ -15,6 +16,9 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+
+    @InjectRepository(ProductImage)
+    private readonly productImageRepository: Repository<ProductImage>,
   ) {}
 
 
@@ -25,8 +29,13 @@ export class ProductsService {
       // if (!createProductDto.slug) { esto es para que el el slug se mande con - o  se rellene
        //   createProductDto.slug = createProductDto.title.toLowerCase().replaceAll(' ', '-').replaceAll("", '_')
       // }
+      const {images = [], ...productDetails} = createProductDto; //desestructuramos el array de imagenes para que no se guarde en la base de datos
+
+      const product = this.productRepository.create({
+        ...productDetails,
+      images: images.map(images => this.productImageRepository.create({url: images})), //esto es para que se guarde en la base de datos
       
-      const product = this.productRepository.create(createProductDto);
+      });
       await this.productRepository.save(product);
       return product;
 
@@ -67,7 +76,8 @@ export class ProductsService {
   async update(id: string, updateProductDto: UpdateProductDto) {
    const product = await this.productRepository.preload({ //le dice a typeorm que busque el id y lo reemplace por el nuevo
     id: id,
-    ...updateProductDto
+    ...updateProductDto,
+    images: [],
    }); //esto no actualiza solo lo prepara para actualizar
   
    if (!product) throw new NotFoundException(`Product with id ${id} not found`);

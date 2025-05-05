@@ -31,5 +31,10 @@ export class CreateProductDto {
     @IsOptional()
     @IsArray()
     tags: string[]; //no es necesario validar porque no es obligatorio
+
+    @IsString({each: true})//validar que cada elemento del array sea un string
+    @IsOptional()
+    @IsArray()
+    images?: string[]; //no es necesario validar porque no es obligatorio
 }
 

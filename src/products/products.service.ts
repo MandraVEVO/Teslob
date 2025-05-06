@@ -3,7 +3,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './entities/product.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Not, Repository } from 'typeorm';
+import { DataSource, Not, Repository } from 'typeorm';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { validate as isUUID } from 'uuid';
@@ -19,6 +19,8 @@ export class ProductsService {
 
     @InjectRepository(ProductImage)
     private readonly productImageRepository: Repository<ProductImage>,
+
+    private readonly dataSource: DataSource,
   ) {}
 
 
@@ -92,18 +94,41 @@ export class ProductsService {
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
+
+    const {images, ...toUpdate} = updateProductDto; //desestructuramos el array de imagenes para que no se guarde en la base de datos
+
    const product = await this.productRepository.preload({ //le dice a typeorm que busque el id y lo reemplace por el nuevo
     id: id,
-    ...updateProductDto,
-    images: [],
+    ...toUpdate,
    }); //esto no actualiza solo lo prepara para actualizar
   
    if (!product) throw new NotFoundException(`Product with id ${id} not found`);
- 
+
+   // create query runner
+   const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction(); 
+
     try {
-      await this.productRepository.save(product);
+
+      if (images){///borra las imagenes viejas
+        await queryRunner.manager.delete(ProductImage,{product:{id}}) ///tener cuidado con el criterio ya que esto puede borrar todas las imagenes
+
+        product.images = images.map(image => this.productImageRepository.create({url: image})); //esto es para que se haga la actualizacion de las imagenes
+      }
+
+      await queryRunner.manager.save(product); //esto es para que se cree la instancia para guardar
+
+      await queryRunner.commitTransaction(); //esto es para que se guarde en la base de datos
+      await queryRunner.release(); //esto es para que se libere la conexion 
+      
+      
+      // await this.productRepository.save(product);
       return product;
     } catch (error) {
+
+      await queryRunner.rollbackTransaction(); 
+      await queryRunner.release(); 
       this.handleExceptions(error);
     }
    
@@ -123,5 +148,17 @@ export class ProductsService {
     }
     this.logger.error(error);
     throw new InternalServerErrorException('Unexpected error, check server logs');
+  }
+
+  async deleteAllProducts() {
+    const query = this.productRepository.createQueryBuilder('product');
+    try {
+      return await query
+        .delete()
+        .where({})
+        .execute();
+    } catch (error) {
+      this.handleExceptions(error);
+    }
   }
 }

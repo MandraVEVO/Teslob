@@ -18,4 +18,11 @@ export class AuthController {
     return this.authService.login(loginUserDto);
   }
 
+  @Get('private')
+  testingPrivateRoute() {
+    return {
+      ok: true,
+      message: 'Hello world',
+    };
+  }
 }

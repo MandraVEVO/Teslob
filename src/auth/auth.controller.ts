@@ -25,9 +25,9 @@ export class AuthController {
     return {
       ok: true,
       message: 'Hello world private',
-      // user: {
-
-      // }
+      user: {
+        user: 'mandra',
+      }
     };
   }
 }

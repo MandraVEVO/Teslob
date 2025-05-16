@@ -32,15 +32,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     async validate(payload: JwtPayload): Promise<User> { 
 //este metodo se va llamar si el JWT no ha expirado y si la fimra de jwt hace match con el payload
 
-        const { email } = payload;
-        const user = await this.userRepository.findOneBy({ email });
+        const { id } = payload;
+        const user = await this.userRepository.findOneBy({ id});
 
         if(!user)
             throw new UnauthorizedException('Token not valid');
         if(!user.isActive)
             throw new UnauthorizedException('User is inactive, talk to admin');
 
-        Request
+        // console.log({user});
         return user;
     }
 }

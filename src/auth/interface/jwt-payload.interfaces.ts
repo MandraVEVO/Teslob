@@ -1,6 +1,6 @@
 
 export interface JwtPayload { //estructura del token 
-    email: string;
+    id: string;
 
     //todo lo que quieran grabar,
 }

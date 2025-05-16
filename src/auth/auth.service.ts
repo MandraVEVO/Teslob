@@ -35,7 +35,7 @@ constructor(
       //TODO return the JWT of access
       return {
         ...user,
-        token: this.getJwtToken({email: user.email}),
+        token: this.getJwtToken({id: user.id}),
       }
   
     } catch (error) {
@@ -46,7 +46,7 @@ constructor(
   async login(loginUserDto: LoginUserDto) {
     const {password, email} = loginUserDto;
     const user = await this.userRepository.findOne({
-       where: {email},
+       where: {},
        select: {email: true, password: true,id: true}
       });
       if(!user)
@@ -54,12 +54,12 @@ constructor(
 
       if(!bcrypt.compareSync(password,user.password))
         throw new UnauthorizedException('Credentials are not valid (password)');
-
+      // console.log({user});
 
 
     return {
       ...user,
-    token: this.getJwtToken({email: user.email}),
+    token: this.getJwtToken({id: user.id}),
     };
     //TO DO: RETORNAR EL JWT
 

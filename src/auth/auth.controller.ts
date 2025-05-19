@@ -9,6 +9,8 @@ import { User } from './entities/user.entity';
 import { Raw } from 'typeorm';
 import { RawHeaders } from './decorators/raw-headers.decorator';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
+import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
+import { ValidRoles } from './interface/valid-roles';
 
 
 @Controller('auth')
@@ -46,9 +48,10 @@ export class AuthController {
   }
 
 
+//  @SetMetadata('roles',['admin','super-user']) //recordar de poner el set metadata y es mejor crear un custom decorator
 
   @Get('private2')
-  @SetMetadata('roles',['admin','super-user']) //recordar de poner el set metadata y es mejor crear un custom decorator
+  @RoleProtected(ValidRoles.superUser, ValidRoles.admin) //esto es para que no se repita el string en el decorador y en el guardia
   @UseGuards( AuthGuard(), UserRoleGuard ) //se recomienda no crear instancias de guardias
   privateRoute2(
     @GetUser() user: User,

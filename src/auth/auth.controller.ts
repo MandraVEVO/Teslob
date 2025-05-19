@@ -11,6 +11,7 @@ import { RawHeaders } from './decorators/raw-headers.decorator';
 import { UserRoleGuard } from './guards/user-role/user-role.guard';
 import { RoleProtected } from './decorators/role-protected/role-protected.decorator';
 import { ValidRoles } from './interface/valid-roles';
+import { Auth } from './decorators';
 
 
 @Controller('auth')
@@ -54,6 +55,19 @@ export class AuthController {
   @RoleProtected(ValidRoles.superUser, ValidRoles.admin) //esto es para que no se repita el string en el decorador y en el guardia
   @UseGuards( AuthGuard(), UserRoleGuard ) //se recomienda no crear instancias de guardias
   privateRoute2(
+    @GetUser() user: User,
+  ){
+    return {
+      ok: true,
+      user,
+    };
+  }
+
+
+  @Get('private3')
+  @Auth(ValidRoles.admin, ValidRoles.superUser) //esto es para que no se repita el string en el decorador y en el guardia
+  //esto es para que no se repita el string en el decorador y en el guardia
+  privateRoute3(
     @GetUser() user: User,
   ){
     return {

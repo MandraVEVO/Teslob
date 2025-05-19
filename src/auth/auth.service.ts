@@ -44,9 +44,11 @@ constructor(
   }
 
   async login(loginUserDto: LoginUserDto) {
+
     const {password, email} = loginUserDto;
+
     const user = await this.userRepository.findOne({
-       where: {},
+       where: {email},
        select: {email: true, password: true,id: true}
       });
       if(!user)
@@ -63,6 +65,12 @@ constructor(
     };
     //TO DO: RETORNAR EL JWT
 
+  }
+  async checkAuthStatus(user: User){
+    return {
+      ...user,
+      token: this.getJwtToken({id: user.id}),
+    }
   }
 
   private getJwtToken( payload: JwtPayload){

@@ -46,7 +46,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   exports: [
     TypeOrmModule,
     JwtStrategy, //para validar el token manualmente
-    PassportModule,
+    PassportModule, //
     JwtModule
 
     

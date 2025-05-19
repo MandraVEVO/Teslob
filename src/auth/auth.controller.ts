@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, SetMetadata } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -8,6 +8,7 @@ import { GetUser } from './decorators/get-user.decorator';
 import { User } from './entities/user.entity';
 import { Raw } from 'typeorm';
 import { RawHeaders } from './decorators/raw-headers.decorator';
+import { UserRoleGuard } from './guards/user-role/user-role.guard';
 
 
 @Controller('auth')
@@ -43,4 +44,19 @@ export class AuthController {
       rawHeaders,
     };
   }
+
+
+
+  @Get('private2')
+  @SetMetadata('roles',['admin','super-user'])
+  @UseGuards( AuthGuard(), UserRoleGuard ) //se recomienda no crear instancias de guardias
+  privateRoute2(
+    @GetUser() user: User,
+  ){
+    return {
+      ok: true,
+      user,
+    };
+  }
+
 }

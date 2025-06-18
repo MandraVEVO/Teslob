@@ -6,6 +6,8 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Auth, GetUser } from 'src/auth/decorators';
 import { User } from 'src/auth/entities/user.entity';
 import { ValidRoles } from 'src/auth/interface/valid-roles';
+import { ApiResponse } from '@nestjs/swagger';
+import { Product } from './entities';
 
 @Controller('products')
 //@Auth()
@@ -13,6 +15,10 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @ApiResponse({status: 201, description: 'Product created successfully', type: Product})//notacion para indicar lo que regresa el endpoint de status
+  @ApiResponse({status: 400 , description: 'Bad Request'})
+  @ApiResponse({status: 401 , description: 'Unauthorized'})
+
 @Auth()
   create(@Body() createProductDto: CreateProductDto,
   @GetUser() user: User,

@@ -8,6 +8,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { validate as isUUID } from 'uuid';
 import { ProductImage } from './entities';
+import { User } from 'src/auth/entities/user.entity';
 @Injectable()
 export class ProductsService {
 
@@ -24,7 +25,7 @@ export class ProductsService {
   ) {}
 
 
-  async create(createProductDto: CreateProductDto) { //tratar de usar patron repository
+  async create(createProductDto: CreateProductDto, user: User) { //tratar de usar patron repository
     try {
 
 
@@ -35,7 +36,8 @@ export class ProductsService {
 
       const product = this.productRepository.create({
         ...productDetails,
-      images: images.map(images => this.productImageRepository.create({url: images})), //esto es para que se guarde en la base de datos
+      images: images.map(images => this.productImageRepository.create({url: images})), 
+      user,//esto es para que se guarde en la base de datos
       
       });
       await this.productRepository.save(product);
@@ -93,7 +95,7 @@ export class ProductsService {
     }
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto) {
+  async update(id: string, updateProductDto: UpdateProductDto, user: User) {
 
     const {images, ...toUpdate} = updateProductDto; //desestructuramos el array de imagenes para que no se guarde en la base de datos
 
@@ -117,6 +119,7 @@ export class ProductsService {
         product.images = images.map(image => this.productImageRepository.create({url: image})); //esto es para que se haga la actualizacion de las imagenes
       }
 
+      product.user = user; //esto es para que se guarde el usuario que actualiza el producto
       await queryRunner.manager.save(product); //esto es para que se cree la instancia para guardar
 
       await queryRunner.commitTransaction(); //esto es para que se guarde en la base de datos
